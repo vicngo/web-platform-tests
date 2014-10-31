@@ -40,15 +40,11 @@ var ifr = document.createElement('iframe');
 ifr.name = 'ifr4';
 document.body.appendChild(ifr);
 
-window.onload = function () {
+window.onload = test.step_func(function () {
     for (var i = 0, frame, frames = document.getElementsByTagName('iframe'); frame = frames[i]; i++) {
-        try{
-            frame.src = js_url;
-        }catch(e){
-            results[frame.name] = 'Exception on setting!';
-        }
+        frame.src = js_url;
     };
-}
+});
 
 </script>
 </body>
