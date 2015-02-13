@@ -1,0 +1,1 @@
+MAXIMUM_ONE_SESSION = True
