@@ -113,7 +113,6 @@ class Session(object):
             raise Exception(resp)
 
     def send_command(self, method, url, body=Missing, headers=Missing):
-        assert self.session_id is not None
         url = urlparse.urljoin("session/%s/" % self.session_id, url)
         return self.client.send(method, url, body, headers)
 

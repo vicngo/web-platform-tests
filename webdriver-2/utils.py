@@ -65,7 +65,6 @@ class TestBase(object):
                                  desired_capabilites=desired_capabilites,
                                  raw_body=raw_body,
                                  headers=headers)
-        assert self.session is not None
         return rv
 
     def teardown(self):

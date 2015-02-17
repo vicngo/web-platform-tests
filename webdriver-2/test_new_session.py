@@ -15,22 +15,22 @@ class Tests(TestBase):
 
     def test_new_session_empty_body(self):
         resp = self.force_new_session(raw_body="")
-        assert_resp(resp, status=500, keys=[("status", unicode)])
+        assert_resp(resp, status=400, keys=[("status", unicode)])
         assert resp.data["status"] == "invalid argument"
 
     def test_new_session_invalid_body_string(self):
         resp = self.force_new_session(raw_body="\"abc\"")
-        assert_resp(resp, status=500, keys=[("status", unicode)])
+        assert_resp(resp, status=400, keys=[("status", unicode)])
         assert resp.data["status"] == "invalid argument"
 
     def test_new_session_invalid_body_number(self):
         resp = self.force_new_session(raw_body="123")
-        assert_resp(resp, status=500, keys=[("status", unicode)])
+        assert_resp(resp, status=400, keys=[("status", unicode)])
         assert resp.data["status"] == "invalid argument"
 
     def test_new_session_invalid_body_list(self):
         resp = self.force_new_session(raw_body="[[\"capabiltites\", []]]")
-        assert_resp(resp, status=500, keys=[("status", unicode)])
+        assert_resp(resp, status=400, keys=[("status", unicode)])
         assert resp.data["status"] == "invalid argument"
 
     @feature(features.MAXIMUM_ONE_SESSION)
