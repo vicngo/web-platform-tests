@@ -1,5 +1,5 @@
-import features
-from utils import assert_resp, feature, TestBase
+from tools.webdriver import features
+from tools.webdriver.utils import assert_resp, feature, TestBase
 
 class Tests(TestBase):
     def test_new_session(self):

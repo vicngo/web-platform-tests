@@ -1,5 +1,5 @@
-import client
-from utils import assert_resp, TestBase
+from tools.webdriver import client
+from tools.webdriver.utils import assert_resp, TestBase
 
 class Test(TestBase):
     def test_wrong_method(self):
