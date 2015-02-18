@@ -98,7 +98,7 @@ class SourceFile(object):
         # wdspec tests are in subdirectories of /webdriver excluding __init__.py
         # files.
         rel_dir_tree = self.rel_path.split(os.path.sep)
-        return (rel_dir_tree[0] == "webdriver-2" and
+        return (rel_dir_tree[0] == "webdriver" and
                 self.filename != "__init__.py" and
                 fnmatch(self.filename, "test_*.py"))
 

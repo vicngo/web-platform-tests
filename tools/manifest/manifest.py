@@ -2,7 +2,7 @@ import json
 import os
 from collections import defaultdict
 
-from item import item_types, ManualTest, WebdriverSpecTest, Stub, RefTest, TestharnessTest
+from item import item_types, RefTest
 from log import get_logger
 from sourcefile import SourceFile
 
@@ -15,7 +15,7 @@ class Manifest(object):
     def __init__(self, git_rev=None, url_base="/"):
         # Dict of item_type: {path: set(manifest_items)}
         self._data = dict((item_type, defaultdict(set))
-                          for item_type in item_types)
+                          for item_type in item_types.keys())
         self.rev = git_rev
         self.url_base = url_base
         self.local_changes = LocalChanges(self)
@@ -25,7 +25,7 @@ class Manifest(object):
 
     def _included_items(self, include_types=None):
         if include_types is None:
-            include_types = item_types
+            include_types = item_types.keys()
 
         for item_type in include_types:
             paths = self._data[item_type].copy()
@@ -64,7 +64,7 @@ class Manifest(object):
             self.add(item)
 
     def remove_path(self, path):
-        for item_type in item_types:
+        for item_type in item_types.keys():
             if path in self._data[item_type]:
                 del self._data[item_type][path]
 
@@ -218,20 +218,14 @@ class Manifest(object):
         if not hasattr(obj, "iteritems"):
             raise ManifestError
 
-        item_classes = {"testharness": TestharnessTest,
-                        "reftest": RefTest,
-                        "manual": ManualTest,
-                        "stub": Stub,
-                        "webdriver": WebdriverSpecTest}
-
         source_files = {}
 
         for k, values in obj["items"].iteritems():
-            if k not in item_types:
+            if k not in item_types.keys():
                 raise ManifestError
             for v in values:
-                manifest_item = item_classes[k].from_json(self, tests_root, v,
-                                                          source_files=source_files)
+                manifest_item = item_types[k].from_json(self, tests_root, v,
+                                                        source_files=source_files)
                 self._add(manifest_item)
 
         for path, values in obj["reftest_nodes"].iteritems():
@@ -250,7 +244,7 @@ class Manifest(object):
 class LocalChanges(object):
     def __init__(self, manifest):
         self.manifest = manifest
-        self._data = dict((item_type, defaultdict(set)) for item_type in item_types)
+        self._data = dict((item_type, defaultdict(set)) for item_type in item_types.keys())
         self._deleted = set()
         self.reftest_nodes = defaultdict(set)
         self.reftest_nodes_by_url = {}
@@ -316,19 +310,13 @@ class LocalChanges(object):
         if not hasattr(obj, "iteritems"):
             raise ManifestError
 
-        item_classes = {"testharness": TestharnessTest,
-                        "reftest": RefTest,
-                        "manual": ManualTest,
-                        "stub": Stub,
-                        "webdriver": WebdriverSpecTest}
-
         for test_type, paths in obj["items"].iteritems():
             for path, tests in paths.iteritems():
                 for test in tests:
-                    manifest_item = item_classes[test_type].from_json(manifest,
-                                                                      tests_root,
-                                                                      test,
-                                                                      source_files=source_files)
+                    manifest_item = item_types[test_type].from_json(manifest,
+                                                                    tests_root,
+                                                                    test,
+                                                                    source_files=source_files)
                     self.add(manifest_item)
 
         for path, values in obj["reftest_nodes"].iteritems():

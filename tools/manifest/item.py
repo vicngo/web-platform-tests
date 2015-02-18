@@ -1,8 +1,6 @@
 import urlparse
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-item_types = ["testharness", "reftest", "manual", "stub", "webdriver"]
-
 def get_source_file(source_files, tests_root, manifest, path):
     def make_new():
         from sourcefile import SourceFile
@@ -160,4 +158,14 @@ class Stub(URLManifestItem):
 
 
 class WebdriverSpecTest(URLManifestItem):
-    item_type = "webdriver"
+    item_type = "wdspec"
+
+item_types = {}
+
+for obj in locals().values():
+    if (isinstance(obj, type) and
+        issubclass(obj, ManifestItem)
+        and obj.item_type is not None):
+
+        item_types[obj.item_type] = obj
+
