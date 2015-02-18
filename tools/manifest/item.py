@@ -1,7 +1,7 @@
 import urlparse
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-item_types = ["testharness", "reftest", "manual", "stub", "wdspec"]
+item_types = ["testharness", "reftest", "manual", "stub", "webdriver"]
 
 def get_source_file(source_files, tests_root, manifest, path):
     def make_new():
@@ -154,17 +154,10 @@ class RefTest(URLManifestItem):
 class ManualTest(URLManifestItem):
     item_type = "manual"
 
+
 class Stub(URLManifestItem):
     item_type = "stub"
 
-class WebdriverSpecTest(ManifestItem):
-    item_type = "wdspec"
 
-    @property
-    def id(self):
-        return self.path
-
-    @classmethod
-    def from_json(cls, manifest, tests_root, obj, source_files=None):
-        source_file = get_source_file(source_files, tests_root, manifest, obj["path"])
-        return cls(source_file, manifest=manifest)
+class WebdriverSpecTest(URLManifestItem):
+    item_type = "webdriver"

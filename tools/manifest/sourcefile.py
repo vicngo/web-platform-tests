@@ -1,3 +1,4 @@
+import ast
 import os
 import urlparse
 from fnmatch import fnmatch
@@ -11,8 +12,6 @@ import html5lib
 import vcs
 from item import Stub, ManualTest, WebdriverSpecTest, RefTest, TestharnessTest
 from utils import rel_path_to_url, is_blacklisted, ContextManagerStringIO, cached_property
-
-wd_pattern = "*.py"
 
 class SourceFile(object):
     parsers = {"html":lambda x:html5lib.parse(x, treebuilder="etree"),
@@ -99,16 +98,32 @@ class SourceFile(object):
         # wdspec tests are in subdirectories of /webdriver excluding __init__.py
         # files.
         rel_dir_tree = self.rel_path.split(os.path.sep)
-        return (rel_dir_tree[0] == "webdriver" and
-                len(rel_dir_tree) > 2 and
+        return (rel_dir_tree[0] == "webdriver-2" and
                 self.filename != "__init__.py" and
-                fnmatch(self.filename, wd_pattern))
+                fnmatch(self.filename, "test_*.py"))
 
     @property
     def name_is_reference(self):
         """Check if the file name matches the conditions for the file to
         be a reference file (not a reftest)"""
         return self.name_suffix("-ref") or self.name_suffix("-notref")
+
+    @cached_property
+    def webdriver_tests(self):
+        try:
+            root = ast.parse(self.open().read(), self.filename)
+        except Exception as e:
+            #TODO: log an error here, or something
+            import traceback
+            print "Error parsing file %s\n%s" % (self.path, traceback.format_exc(e))
+            return []
+
+        rv = []
+        for item in root.body:
+            if isinstance(item, ast.ClassDef) and item.name.startswith("Test"):
+                url = "%s#%s" % (self.url, item.name)
+                rv.append(WebdriverSpecTest(self, url))
+        return rv
 
     @property
     def markup_type(self):
@@ -230,7 +245,7 @@ class SourceFile(object):
             rv = [TestharnessTest(self, self.url[:-3])]
 
         elif self.name_is_webdriver:
-            rv = [WebdriverSpecTest(self)]
+            rv = self.webdriver_tests
 
         elif self.content_is_testharness:
             rv = [TestharnessTest(self, self.url, timeout=self.timeout)]

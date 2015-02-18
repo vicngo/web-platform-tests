@@ -222,7 +222,7 @@ class Manifest(object):
                         "reftest": RefTest,
                         "manual": ManualTest,
                         "stub": Stub,
-                        "wdspec": WebdriverSpecTest}
+                        "webdriver": WebdriverSpecTest}
 
         source_files = {}
 
@@ -320,7 +320,7 @@ class LocalChanges(object):
                         "reftest": RefTest,
                         "manual": ManualTest,
                         "stub": Stub,
-                        "wdspec": WebdriverSpecTest}
+                        "webdriver": WebdriverSpecTest}
 
         for test_type, paths in obj["items"].iteritems():
             for path, tests in paths.iteritems():
