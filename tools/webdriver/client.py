@@ -7,17 +7,14 @@ Missing = object()
 class WebDriver(object):
     session = None
 
-    def __init__(self, host=None, port=None, url_prefix="/"):
+    def __init__(self, config):
         #TODO: this is temporary
-        if host is None:
-            host = "localhost"
-        if port is None:
-            port = 4444
-
-        self.host = host
-        self.port = port
-        self.url_prefix = url_prefix
+        self.config = config
+        self.host = config["webdriver"]["host"]
+        self.port = config["webdriver"]["port"]
+        self.path_prefix = config["webdriver"]["path_prefix"]
         self._connection = None
+        print self.config
 
     def connect(self):
         self._connection = httplib.HTTPConnection(self.host, self.port)
@@ -26,6 +23,9 @@ class WebDriver(object):
         if self._connection:
             self._connection.close()
         self._connection = None
+
+    def url(self, suffix):
+        return urlparse.urljoin(self.config["webdriver"]["path_prefix"], suffix)
 
     def send(self, method, url, body=Missing, headers=Missing):
         if not self._connection:
@@ -39,9 +39,6 @@ class WebDriver(object):
 
         if body is Missing:
             body = ""
-
-        if self.url_prefix is not Missing:
-            url = urlparse.urljoin(self.url_prefix, url)
 
         if headers is Missing:
             headers = {}
@@ -74,18 +71,16 @@ class WebDriver(object):
             if required_capabilities is not Missing:
                 body["required_capabilities"] = required_capabilities
 
-        rv = self.send("POST", "session", body, headers)
+        rv = self.send("POST", self.url("session"), body, headers)
         return rv
 
     def end_session(self, session_id, raw_body=Missing, headers=Missing):
-        url = urlparse.urljoin("session/%s", session_id)
+        url = self.url("session/%s" % session_id)
         return self.send("DELETE", url, raw_body, headers)
 
 class Session(object):
-    def __init__(self, client=None, session_id=None):
+    def __init__(self, client, session_id=None):
         self.session_id = session_id
-        if client is None:
-            client = WebDriver()
         self.client = client
 
     def start(self, **kwargs):
@@ -112,14 +107,34 @@ class Session(object):
         if resp.error:
             raise Exception(resp)
 
+    def url(self, path, scheme="http", subdomain=None, alt_port=False):
+        if subdomain is not None:
+            host = self.client.config["server"]["domains"][subdomain]
+        else:
+            host = self.client.config["server"]["host"]
+
+        if alt_port:
+            if scheme != "http":
+                raise ValueError("Only http supports multiple ports")
+            port_index = 1
+        else:
+            port_index = 0
+        port = self.client.config["server"]["ports"][scheme][port_index]
+
+        netloc = "%s:%s" % (host, port)
+
+        return urlparse.urlunsplit((scheme, netloc, path, "", ""))
+
     def send_command(self, method, url, body=Missing, headers=Missing):
-        url = urlparse.urljoin("session/%s/" % self.session_id, url)
+        url = self.client.url(urlparse.urljoin("session/%s/" % self.session_id, url))
         return self.client.send(method, url, body, headers)
 
     def get(self, url, raw_body=Missing, headers=Missing):
         if raw_body is not Missing:
             body = raw_body
         else:
+            if urlparse.urlsplit(url).netloc is None:
+                return self.url(url)
             body = {"url": url}
         return self.send_command("POST", "url", body, headers)
 
