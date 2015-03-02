@@ -3,8 +3,7 @@ from tools.webdriver import TestBase, test as t
 class Test(TestBase):
     def test_keys(self):
         self.session.get(self.session.url("/webdriver/resources/form.html"))
-        element_resp = self.session.find_element("css selector", "input")
-        elem = self.session.element(element_resp.data["value"])
+        resp, elem = self.session.find_element("css selector", "input")
         send_keys_resp = elem.send_keys("PASS")
         t.assert_resp(send_keys_resp, status=200)
         t.assert_equals(send_keys_resp.data, {})

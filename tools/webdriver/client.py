@@ -188,7 +188,12 @@ class Session(object):
                     "value": selector}
         else:
             body = raw_body
-        return self.send_command("POST", "element", body, headers)
+        resp = self.send_command("POST", "element", body, headers)
+        try:
+            elem = self.element(resp.data["value"])
+        except Exception as e:
+            elem = None
+        return resp, elem
 
     def element(self, data):
         return Element(self, data["element-6066-11e4-a52e-4f735466cecf"])
@@ -216,6 +221,20 @@ class Element(object):
 
     def url(self, suffix):
         return "element/%s/%s" % (self.id, suffix)
+
+    def find_element(self, strategy, selector, raw_body=Missing, headers=Missing):
+        if raw_body is Missing:
+            body = {"using": strategy,
+                    "value": selector}
+        else:
+            body = raw_body
+
+        resp = self.session.send_command("POST", self.url("element"), body, headers)
+        try:
+            elem = self.session.element(resp.data["value"])
+        except Exception:
+            elem = None
+        return resp, elem
 
     def send_keys(self, keys, raw_body=Missing, headers=Missing):
         if isinstance(keys, (str, unicode)):
