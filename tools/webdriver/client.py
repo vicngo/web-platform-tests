@@ -168,7 +168,7 @@ class Session(object):
                     "height": height}
         else:
             body = raw_body
-        return self.send_command("POST", "window/size", raw_body, headers)
+        return self.send_command("POST", "window/size", body, headers)
 
     def get_window_size(self, raw_body=Missing, headers=Missing):
         return self.send_command("GET", "window/size", raw_body, headers)
@@ -179,6 +179,52 @@ class Session(object):
     # TODO: not properly defined
     # def fullscreen_window(self, raw_body=Missing, headers=Missing):
     #     return self.send_command("POST", "", raw_body, headers)
+
+    #[...]
+
+    def find_element(self, strategy, selector, raw_body=Missing, headers=Missing):
+        if raw_body is Missing:
+            body = {"using": strategy,
+                    "value": selector}
+        else:
+            body = raw_body
+        return self.send_command("POST", "element", body, headers)
+
+    def element(self, data):
+        return Element(self, data["element-6066-11e4-a52e-4f735466cecf"])
+
+
+    #[...]
+
+    def execute_script(self, script, args=Missing, raw_body=Missing, headers=Missing):
+        if args is Missing:
+            args = []
+
+        if raw_body is Missing:
+            body = {
+                "script": script,
+                "args": args
+            }
+        else:
+            body = raw_body
+        return self.send_command("POST", "execute", body, headers)
+
+class Element(object):
+    def __init__(self, session, id):
+        self.session = session
+        self.id = id
+
+    def url(self, suffix):
+        return "element/%s/%s" % (self.id, suffix)
+
+    def send_keys(self, keys, raw_body=Missing, headers=Missing):
+        if isinstance(keys, (str, unicode)):
+            keys = [char for char in keys]
+        if raw_body is Missing:
+            body = {"value": keys}
+        else:
+            body = raw_body
+        return self.session.send_command("POST", self.url("value"), body, headers)
 
 class Response(object):
     def __init__(self, status, reason, headers, body):
