@@ -19,20 +19,39 @@
 interface Window {
 };
 
-interface Performance {
+interface WorkerGlobalScope {
 };
 
-partial interface Window {
-  [Replaceable] readonly attribute Performance performance;
+interface Worker {
 };
+
+interface SharedWorker {
+};
+
+interface ServiceWorker {
+};
+
 </pre>
 
 <pre id='idl'>
 typedef double DOMHighResTimeStamp;
 
-partial interface Performance {
-  DOMHighResTimeStamp now();
+[Exposed=(Window,Worker)]
+interface Performance : EventTarget {
+    DOMHighResTimeStamp now ();
+    DOMHighResTimeStamp translateTime (DOMHighResTimeStamp time, (Window or Worker or SharedWorker or ServiceWorker) timeSource);
+    serializer = {attribute};
 };
+
+[NoInterfaceObject, Exposed=(Window,Worker)]
+interface GlobalPerformance {
+    [Replaceable]
+    readonly    attribute Performance performance;
+};
+
+Window implements GlobalPerformance;
+
+WorkerGlobalScope implements GlobalPerformance;
 </pre>
 
 <script>
