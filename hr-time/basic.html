@@ -2,12 +2,11 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>window.performance.now exists</title>
+<title>window.performance object</title>
 <link rel="author" title="W3C" href="http://www.w3.org/" />
 <link rel="help" href="http://www.w3.org/TR/hr-time/#sec-extenstions-performance-interface"/>
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
-<link rel="stylesheet" href="/resources/testharness.css" />
 <script>
 test(function() {
   assert_equals(typeof window.performance, "object");
@@ -36,6 +35,17 @@ async_test(function() {
     this.done();
   }), 2000);
 }, 'High resolution time has approximately the right relative magnitude');
+
+test(function() {
+  assert_equals(typeof window.performance.translateTime, "function", "window.performance.translateTime is a function");
+}, "window.performance.translateTime() function");
+
+test(function() {
+  var now_hrt = performance.now();
+  var translate_hrt = performance.translateTime(now_hrt, window);
+  assert_equals(translate_hrt, now_hrt, "window.performance.translateTime(now(), window) returns the same value");
+}, "window.performance.translateTime(now(), window) returns the same value");
+
 </script>
 </head>
 <body>
