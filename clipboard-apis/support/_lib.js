@@ -1,9 +1,11 @@
 function setupTest(test_obj, target, event, dataToPaste, externalPassCondition ){
     var logNode=document.getElementsByTagName('p')[0].firstChild;
-  logNode.data='';
+    var tmp;
+    console.log('setting up..');
+    logNode.data='';
     if( typeof target==='string' ){
         if( target.indexOf('.')>-1 ){ // for example "myElementID.firstChild"
-            var tmp=target.split('.');
+            tmp=target.split('.');
             target=document.getElementById(tmp[0])[tmp[1]];
         }else{
             target=document.getElementById(target);
@@ -18,12 +20,12 @@ function setupTest(test_obj, target, event, dataToPaste, externalPassCondition )
     if( dataToPaste || event==='paste' ){
         logNode.data+='Please place this on the clipboard before continuing the test: "'+(dataToPaste || 'clipboard text' )+'"\n';
     logNode.parentNode.style.whiteSpace='pre';
-        if(dataToPaste.indexOf('{')==0){ // sorry about the content sniffing, this is likely a JSON string with alternate clipboard formats
+        if(dataToPaste.indexOf('{') === 0){ // sorry about the content sniffing, this is likely a JSON string with alternate clipboard formats
             if(dataToPaste.indexOf('text/html')>-1){
                 logNode.parentNode.appendChild(document.createElement('br'));
                 logNode.parentNode.appendChild(document.createTextNode('Note: copy all body text from '));
-                var tmp=logNode.parentNode.appendChild(document.createElement('a'));
-                tmp.href='support/html_file.htm';
+                tmp = logNode.parentNode.appendChild(document.createElement('a'));
+                tmp.href = 'support/html_file.htm';
                 tmp.appendChild(document.createTextNode('this support file'));
                 logNode.parentNode.appendChild(document.createTextNode(' for this test.'));
             }
@@ -35,22 +37,24 @@ function setupTest(test_obj, target, event, dataToPaste, externalPassCondition )
         logNode.parentNode.appendChild(document.createTextNode('  '));
         var btn = logNode.parentNode.appendChild(document.createElement('button'))
         btn.type = 'button';
-        btn.onclick = test_obj.func_step(function(){
+        btn.onclick = test_obj.step_func(function(){
             triggerTestManually(event, test_obj);
             btn.parentNode.removeChild(btn);
         });
-        btn.appendChild(document.createTextNode(' Click here to run test: '));
+        btn.appendChild(document.createTextNode('Click here to run test'));
     }else{
         logNode.data+='Test in progress, waiting for '+event+' event';
     }
+
     if(typeof onTestSetupReady==='function'){
-        onTestSetupReady(event, test_obj);
+        // schedule an onTestSetupReady() call..
+        setTimeout(function(){onTestSetupReady(event, test_obj);},5);
     }
 
     function intermediateListener(e){
         e=e||window.event;
-    if(!e.target)e.target=e.srcElement;
-    if(typeof window.clipboardData != 'undefined' && typeof e.clipboardData=='undefined' )e.clipboardData=window.clipboardData;
+        if(!e.target)e.target=e.srcElement;
+        if(typeof window.clipboardData != 'undefined' && typeof e.clipboardData=='undefined' )e.clipboardData=window.clipboardData;
         try{
             var testResult=clipboard_api_test(e, test_obj, event, dataToPaste, externalPassCondition);
             result(testResult, '', externalPassCondition);
@@ -59,8 +63,8 @@ function setupTest(test_obj, target, event, dataToPaste, externalPassCondition )
         }
     }
   /* if @autofocus isn't supported.. */
-  if( document.getElementsByTagName('input').length >1 && document.activeElement == document.body  ){
-    for(var inp, i=0, inputs=document.getElementsByTagName('input');inp=inputs[i];i++){
+  if( document.querySelectorAll('input, textarea').length >1 && document.activeElement == document.body  ){
+    for(var inp, i=0, inputs=document.querySelectorAll('input,textarea');inp=inputs[i];i++){
       if(inp.hasAttribute('autofocus'))inp.focus();
     }
   }
@@ -77,7 +81,7 @@ function setupTest(test_obj, target, event, dataToPaste, externalPassCondition )
             logNode.data= '';
         }else if( typeof testResult ==='string' ){
             logNode.data=testResult;
-            test_obj.assert_equals(testResult, '');
+            assert_equals(testResult, '');
             t.done();
         }else if( typeof externalPassCondition==='string' ){
             logNode.data='\nThis test passes if this text is now on the system clipboard: "'+externalPassCondition+'"';
@@ -86,7 +90,7 @@ function setupTest(test_obj, target, event, dataToPaste, externalPassCondition )
             btn.textContent = 'Passed!';
             btn.type='button';
             btn = logNode.parentNode.appendChild(document.createElement('button'));
-            btn.onclick = function(){result(false)};
+            btn.onclick = function(){result(false);};
             btn.textContent = 'Failed!';
             btn.type='button';
         }
@@ -96,4 +100,5 @@ function setupTest(test_obj, target, event, dataToPaste, externalPassCondition )
 
     }
     window.result = result;
+    console.log('setup completed');
 }
